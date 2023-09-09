@@ -63,7 +63,6 @@ pub struct Fund<'info> {
     pub funder: Signer<'info>,
 
     #[account(
-        mut,
         seeds = [
             b"vault".as_ref(),
             vault.name.as_ref(),
@@ -95,6 +94,7 @@ pub struct Fund<'info> {
     pub vault_ata: Account<'info, TokenAccount>,
 
     #[account(
+        mut,
         associated_token::authority = funder,
         associated_token::mint = mint,
     )]
@@ -115,7 +115,6 @@ pub struct Drain<'info> {
     pub drainer: Signer<'info>,
 
     #[account(
-        mut,
         seeds = [
             b"vault".as_ref(),
             vault.name.as_ref(),
@@ -139,12 +138,14 @@ pub struct Drain<'info> {
     pub mint: Account<'info, Mint>,
 
     #[account(
+        mut,
         associated_token::authority = vault,
         associated_token::mint = mint,
     )]
     pub vault_ata: Account<'info, TokenAccount>,
 
     #[account(
+        mut,
         associated_token::authority = drainer,
         associated_token::mint = mint,
     )]
