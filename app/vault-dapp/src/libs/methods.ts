@@ -63,6 +63,10 @@ export async function fund(
     const newAccount = Keypair.generate();
     if (tokenMint.toString() === NATIVE_MINT.toString()) {
       const ata = getAssociatedTokenAddressSync(NATIVE_MINT, wallet.publicKey);
+      const ataData = program.provider.connection.getAccountInfo(ata);
+      if (!ataData) {
+        transaction.add(createAssociatedTokenAccountInstruction(wallet.publicKey, ata, wallet.publicKey, NATIVE_MINT));
+      }
       transaction.add(
         // SystemProgram.transfer({
         //   fromPubkey: wallet.publicKey,
@@ -82,7 +86,6 @@ export async function fund(
           NATIVE_MINT,
           wallet.publicKey,
         ),
-        createAssociatedTokenAccountInstruction(wallet.publicKey, ata, wallet.publicKey, NATIVE_MINT),
         createTransferInstruction(newAccount.publicKey, ata, wallet.publicKey, amount.toNumber()),
         createCloseAccountInstruction(newAccount.publicKey, wallet.publicKey, wallet.publicKey),
       );
