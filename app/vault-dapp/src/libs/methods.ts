@@ -63,17 +63,11 @@ export async function fund(
     const newAccount = Keypair.generate();
     if (tokenMint.toString() === NATIVE_MINT.toString()) {
       const ata = getAssociatedTokenAddressSync(NATIVE_MINT, wallet.publicKey);
-      const ataData = program.provider.connection.getAccountInfo(ata);
+      const ataData = await program.provider.connection.getAccountInfo(ata);
       if (!ataData) {
         transaction.add(createAssociatedTokenAccountInstruction(wallet.publicKey, ata, wallet.publicKey, NATIVE_MINT));
       }
       transaction.add(
-        // SystemProgram.transfer({
-        //   fromPubkey: wallet.publicKey,
-        //   toPubkey: ata,
-        //   lamports: amount.toNumber(),
-        // }),
-        // createSyncNativeInstruction(ata),
         SystemProgram.createAccount({
           fromPubkey: wallet.publicKey,
           newAccountPubkey: newAccount.publicKey,
@@ -113,13 +107,22 @@ export async function drain(
   if (!wallet.publicKey) return;
   try {
     const transaction = new Transaction();
+    const ata = getAssociatedTokenAddressSync(tokenMint, wallet.publicKey);
+
+    if (tokenMint.toString() === NATIVE_MINT.toString()) {
+      const ataData = await program.provider.connection.getAccountInfo(ata);
+      if (!ataData) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(wallet.publicKey, ata, wallet.publicKey, NATIVE_MINT)
+        );
+      }
+    }
 
     transaction.add(
       await getDrainInstruction(program, wallet.publicKey, name, tokenMint, amount)
     );
 
     if (tokenMint.toString() === NATIVE_MINT.toString()) {
-      const ata = getAssociatedTokenAddressSync(tokenMint, wallet.publicKey);
       transaction.add(
         createCloseAccountInstruction(
           ata,
