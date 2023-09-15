@@ -15,9 +15,9 @@ export default function Home() {
   const wallet = useWallet();
   const program = useProgram();
   const [reload, setReload] = useState({});
-  const [name] = useState(VAULT_NAME);
+  const [name, setName] = useState(VAULT_NAME);
   const [admin] = useState(false);
-  const { vault, user, mints } = useFetchVault(reload, name, admin);
+  const { vault, vaults, user, mints } = useFetchVault(reload, name, admin);
   const [isSol, setIsSol] = useState(true);
   const [tokenAddress, setTokenAddress] = useState(NATIVE_MINT.toString());
   const [decimals, setDecimals] = useState(1e9);
@@ -32,7 +32,7 @@ export default function Home() {
 
   const handleFund = async () => {
     if (!program || !vault) return;
-    console.log(amount, decimals);
+
     await fund(wallet, program, VAULT_NAME, new PublicKey(tokenAddress.trim()), new BN(amount * decimals));
     setReload({});
   }
@@ -59,6 +59,14 @@ export default function Home() {
     <div className='flex flex-col gap-2'>
       <div>
         <WalletMultiButton />
+      </div>
+      <div>
+        Vault Name:
+        <select value={name} onChange={(e) => setName(e.target.value)}>
+          {vaults.map(vault => (
+            <option key={vault.name} value={vault.name}>{vault.name}</option>
+          ))}
+        </select>
       </div>
       {!user
         ? <button onClick={handleCreateUser}>Create User</button>
