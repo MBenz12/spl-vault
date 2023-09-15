@@ -7,6 +7,7 @@ import { getMint } from '@solana/spl-token';
 
 const useFetchVault = (reload: {}, name: string, admin: boolean) => {
   const [vault, setVault] = useState<VaultData>();
+  const [vaults, setVaults] = useState<VaultData[]>([]);
   const [user, setUser] = useState<UserData>();
   const [users, setUsers] = useState<UserData[]>([]);
   const [mints, setMints] = useState<Mint[]>([]);
@@ -55,6 +56,12 @@ const useFetchVault = (reload: {}, name: string, admin: boolean) => {
             return mint;
           }))
         );
+      } else {
+        setVault(undefined);
+      }
+      if (!admin) {
+        const vaults = await program.account.vault.all();
+        setVaults(vaults.map(vault => vault.account));
       }
     } catch (error) {
       console.log(error);
@@ -65,7 +72,7 @@ const useFetchVault = (reload: {}, name: string, admin: boolean) => {
     fetchVault();
   }, [program, fetchVault, reload, name]);
 
-  return { vault, user, users, mints };
+  return { vault, user, users, mints, vaults };
 };
 
 export default useFetchVault;
