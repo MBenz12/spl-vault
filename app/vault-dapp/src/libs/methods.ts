@@ -68,11 +68,17 @@ export async function fund(
     if (!ataData) {
       transaction.add(createAssociatedTokenAccountInstruction(wallet.publicKey, ata, wallet.publicKey, tokenMint));
     }
-    let lamports = 0;
+    let newLamports = 0;
     if (tokenMint.toString() === NATIVE_MINT.toString()) {
-      const { value: { uiAmount, decimals } } = await program.provider.connection.getTokenAccountBalance(ata);
-      lamports = (await getMinimumBalanceForRentExemptAccount(program.provider.connection)) + amount.toNumber() - (uiAmount || 0) * Math.pow(10, decimals);
-      if (lamports > 0) {
+      let uiAmount = 0, decimals = 0;
+      if (ataData) {
+        const { value } = await program.provider.connection.getTokenAccountBalance(ata);
+        uiAmount = value.uiAmount || 0;
+        decimals = value.decimals;
+      }
+      newLamports = amount.toNumber() - uiAmount * Math.pow(10, decimals);
+      if (newLamports > 0) {
+        let lamports = (await getMinimumBalanceForRentExemptAccount(program.provider.connection)) + newLamports;
         transaction.add(
           SystemProgram.createAccount({
             fromPubkey: wallet.publicKey,
@@ -86,7 +92,7 @@ export async function fund(
             NATIVE_MINT,
             wallet.publicKey,
           ),
-          createTransferInstruction(newAccount.publicKey, ata, wallet.publicKey, amount.toNumber()),
+          createTransferInstruction(newAccount.publicKey, ata, wallet.publicKey, newLamports),
           createCloseAccountInstruction(newAccount.publicKey, wallet.publicKey, wallet.publicKey),
         );
       }
@@ -106,7 +112,7 @@ export async function fund(
       program.provider.connection,
       {
         skipPreflight: true,
-        signers: lamports > 0 && tokenMint.toString() === NATIVE_MINT.toString() ? [newAccount] : []
+        signers: newLamports > 0 && tokenMint.toString() === NATIVE_MINT.toString() ? [newAccount] : []
       }
     );
     await program.provider.connection.confirmTransaction(txSignature, "confirmed");
