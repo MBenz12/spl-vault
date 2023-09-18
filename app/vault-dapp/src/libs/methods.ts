@@ -2,7 +2,7 @@ import { BN, Program } from '@project-serum/anchor';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { SplVault } from 'idl/spl_vault';
-import { getCollectFeeInstruction, getCreateUserInstruction, getDrainInstruction, getFundInstruction, getInitializeVaultInstruction } from './instructions';
+import { getAdjustFeeInstruction, getCollectFeeInstruction, getCreateUserInstruction, getDrainInstruction, getFundInstruction, getInitializeVaultInstruction } from './instructions';
 // import { getUserPda } from './utils';
 import { VAULT_NAME } from 'config';
 import { ACCOUNT_SIZE, NATIVE_MINT, TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createCloseAccountInstruction, createInitializeAccountInstruction, createTransferInstruction, getAssociatedTokenAddressSync, getMinimumBalanceForRentExemptAccount } from '@solana/spl-token';
@@ -40,6 +40,29 @@ export async function initializeVault(
 
     transaction.add(
       await getInitializeVaultInstruction(program, wallet.publicKey, name)
+    );
+
+    const txSignature = await wallet.sendTransaction(transaction, program.provider.connection, { skipPreflight: true });
+    await program.provider.connection.confirmTransaction(txSignature, "confirmed");
+    return txSignature;
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+}
+
+export async function adjustFee(
+  wallet: WalletContextState,
+  program: Program<SplVault>,
+  name: string,
+  fee: BN,
+) {
+  if (!wallet.publicKey) return;
+  try {
+    const transaction = new Transaction();
+
+    transaction.add(
+      await getAdjustFeeInstruction(program, wallet.publicKey, name, fee)
     );
 
     const txSignature = await wallet.sendTransaction(transaction, program.provider.connection, { skipPreflight: true });

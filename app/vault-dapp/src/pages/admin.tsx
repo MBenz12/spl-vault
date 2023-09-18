@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useWallet } from '@solana/wallet-adapter-react';
 import useProgram from 'hooks/useProgram';
-import { collectFee, drain, initializeVault } from 'libs/methods';
+import { adjustFee, collectFee, drain, initializeVault } from 'libs/methods';
 import { useState } from 'react';
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import useFetchVault from 'hooks/useFetchVault';
@@ -18,6 +18,7 @@ export default function Admin() {
   const [admin] = useState(true);
   const { vault, users, mints } = useFetchVault(reload, name, admin);
   const [amount, setAmount] = useState(0);
+  const [fee, setFee] = useState(0);
 
   const handleInitializeVault = async () => {
     if (!program) return;
@@ -51,6 +52,13 @@ export default function Admin() {
     setReload({});
   }
 
+  const handleAdjustFee = async () => {
+    if (!program || !vault) return;
+
+    await adjustFee(wallet, program, VAULT_NAME, new BN(fee));
+    setReload({});
+  }
+
   return (
     <div className='flex flex-col gap-2'>
       <WalletMultiButton />
@@ -58,7 +66,11 @@ export default function Admin() {
       {!vault && <button onClick={handleInitializeVault}>Initialize</button>}
       {vault &&
         <div className='flex flex-col gap-2'>
-          <h1>Fee:</h1>
+          <div>Fee: {vault.fee.toNumber()}</div>
+          <div className="flex gap-2 items-center">
+            <input type="number" value={fee} onChange={(e) => setFee(parseInt(e.target.value))} />
+            <button onClick={handleAdjustFee}>Adjust</button>
+          </div>
           <div className="flex flex-col gap-1 ml-5">
             {vault.feeAssets.map(asset => (
               <div className='flex gap-2 items-center' key={asset.mint.toString()}>
