@@ -7,7 +7,7 @@ use anchor_spl::token::{transfer, Transfer};
 use crate::ins::*;
 use crate::state::*;
 
-declare_id!("46GUjqKJPkWfPeqccSjGBAyP2CWBpTSj29LSPpaxRQvN");
+declare_id!("5N3f7WtQLAzYr1X49jkkjnLtLd7Y2yEijcXScCJsZ86F");
 
 #[program]
 pub mod spl_vault {
