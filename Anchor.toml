@@ -2,7 +2,11 @@
 seeds = false
 skip-lint = false
 [programs.devnet]
+<<<<<<< HEAD
 spl_vault = "5N3f7WtQLAzYr1X49jkkjnLtLd7Y2yEijcXScCJsZ86F"
+=======
+spl_vault = "3xcvmiofhKuBLp7uJCxLafRkeemhx1EJBpYN7B6ZCR9D"
+>>>>>>> 0d0a7b9d7e9c3a8177979357b771b63028b7d304
 
 [registry]
 url = "https://api.apr.dev"
